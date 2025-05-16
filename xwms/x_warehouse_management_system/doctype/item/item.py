@@ -6,4 +6,6 @@ from frappe.model.document import Document
 
 
 class Item(Document):
-	pass
+    # make sure valuation rate is 0 before save
+    def before_save(self):
+        self.valuation_rate = 0
