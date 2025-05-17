@@ -5,18 +5,58 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_dz6g"
+  "item",
+  "warehouse",
+  "posting_date",
+  "actual__quantity",
+  "valuation_rate",
+  "voucher_type",
+  "voucher_no"
  ],
  "fields": [
   {
-   "fieldname": "section_break_dz6g",
-   "fieldtype": "Section Break"
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "actual__quantity",
+   "fieldtype": "Int",
+   "label": "Actual  Quantity"
+  },
+  {
+   "fieldname": "valuation_rate",
+   "fieldtype": "Currency",
+   "label": "Valuation Rate"
+  },
+  {
+   "fieldname": "voucher_type",
+   "fieldtype": "Data",
+   "label": "Voucher Type"
+  },
+  {
+   "fieldname": "voucher_no",
+   "fieldtype": "Link",
+   "label": "Voucher No",
+   "options": "Stock Entry"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 05:40:13.970126",
+ "modified": "2025-05-17 17:29:47.248564",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Ledger Entry",
