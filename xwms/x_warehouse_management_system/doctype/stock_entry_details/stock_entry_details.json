@@ -28,7 +28,8 @@
   {
    "fieldname": "uom",
    "fieldtype": "Data",
-   "label": "UOM"
+   "label": "UOM",
+   "options": "item.uom"
   },
   {
    "fieldname": "valuation_rate",
@@ -45,7 +46,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-17 04:30:23.050198",
+ "modified": "2025-05-17 05:06:46.304353",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Entry Details",
