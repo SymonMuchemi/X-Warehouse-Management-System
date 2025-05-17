@@ -34,7 +34,7 @@ class StockEntry(Document):
 
                 # TODO: Remove this line once done
                 print(f"Current valuation rate for {row.name}: {valuation_rate}")
-                
+
                 # get total available quantity
                 available_quantity = frappe.db.sql(
                     """ SELECT COALESCE(SUM(actual_quantity), 0)
@@ -60,6 +60,56 @@ class StockEntry(Document):
                         "warehouse": self.from_warehouse,
                         "posting_date": self.posting_date,
                         "actual_quantity": -row.quantity,
+                        "valuation_rate": valuation_rate,
+                        "voucher_type": "Stock Entry",
+                        "voucher_no": self.name,
+                    }
+                ).insert()
+
+        elif self.type == "Transfer":
+            for row in self.items:
+                # get total available quantity
+                available_quantity = frappe.db.sql(
+                    """ SELECT COALESCE(SUM(actual_quantity), 0)
+                    FROM `tabStock Ledger Entry`
+                    WHERE item = %s AND warehouse = %s
+                    """,
+                    (row.item, self.from_warehouse),
+                )[0][0]
+
+                # get valuation rate from the source warehouse
+                valuation_rate = self.get_current_valuation_rate(
+                    row.item, self.from_warehouse
+                )
+
+                if row.quantity > available_quantity:
+                    frappe.throw(
+                        f"Cannot transfer {row.quantity} units of item {row.item} from {self.from_warehouse}. "
+                        f"Only {available_quantity} units available."
+                    )
+
+                # oubound entry
+                frappe.get_doc(
+                    {
+                        "doctype": "Stock Ledger Entry",
+                        "item": row.item,
+                        "warehouse": self.from_warehouse,
+                        "posting_date": self.posting_date,
+                        "actual_quantity": -row.quantity,
+                        "valuation_rate": valuation_rate,
+                        "voucher_type": "Stock Entry",
+                        "voucher_no": self.name,
+                    }
+                ).insert()
+
+                # inbound entry
+                frappe.get_doc(
+                    {
+                        "doctype": "Stock Ledger Entry",
+                        "item": row.item,
+                        "warehouse": self.to_warehouse,
+                        "posting_date": self.posting_date,
+                        "actual_quantity": row.quantity,
                         "valuation_rate": valuation_rate,
                         "voucher_type": "Stock Entry",
                         "voucher_no": self.name,
@@ -112,7 +162,7 @@ class StockEntry(Document):
                         f"From warehouse must be a leaf node (not a group) for item {row.item}"
                     )
 
-            elif self.stock_entry_type == "Transfer":
+            elif self.type == "Transfer":
                 if not self.from_warehouse or not self.to_warehouse:
                     frappe.throw(
                         f"Both From and To Warehouses are required for Transfer (item {row.item})"
