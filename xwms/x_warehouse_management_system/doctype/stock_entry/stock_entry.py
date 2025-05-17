@@ -6,9 +6,6 @@ from frappe.model.document import Document
 
 
 class StockEntry(Document):
-    def before_save(self):
-        self.validate()
-
     def on_submit(self):
         if self.type == "Receipt":
             for row in self.items:
@@ -36,13 +33,9 @@ class StockEntry(Document):
                 print(f"Current valuation rate for {row.name}: {valuation_rate}")
 
                 # get total available quantity
-                available_quantity = frappe.db.sql(
-                    """ SELECT COALESCE(SUM(actual_quantity), 0)
-                    FROM `tabStock Ledger Entry`
-                    WHERE item = %s AND warehouse = %s
-                    """,
-                    (row.item, self.from_warehouse),
-                )[0][0]
+                available_quantity = self.get_available_quantity(
+                    row.item, self.from_warehouse
+                )
 
                 # TODO: delete this after testing
                 print(f"Available {row.name}: {available_quantity}")
@@ -191,16 +184,7 @@ class StockEntry(Document):
                     )
 
     def get_current_valuation_rate(self, item, warehouse):
-        result = frappe.db.sql(
-            """
-                SELECT
-                    COALESCE(SUM(actual_quantity * valuation_rate), 0) AS total_value,
-                    COALESCE(SUM(actual_quantity), 0) AS total_quantity
-                FROM `tabStock Ledger Entry`
-                WHERE item = %s AND warehouse = %s
-            """,
-            (item, warehouse),
-        )
+        result = self.get_available_quantity(item, warehouse)
 
         total_value, total_quantity = result[0]
 
@@ -208,3 +192,13 @@ class StockEntry(Document):
             return 0
 
         return total_value / total_quantity
+
+    def get_available_quantity(self, item, warehouse):
+        return frappe.db.sql(
+            """
+                SELECT COALESCE(SUM(actual_quantity), 0)
+                FROM `tabStock Ledger Entry`
+                WHERE item = %s AND warehouse = %s
+            """,
+            (item, warehouse),
+        )[0][0]
