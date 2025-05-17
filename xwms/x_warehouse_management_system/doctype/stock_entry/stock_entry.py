@@ -9,6 +9,21 @@ class StockEntry(Document):
     def before_save(self):
         self.validate()
 
+    def on_submit(self):
+        if self.type == 'Receipt':
+            for row in self.items:
+                sle_doc = frappe.get_doc({
+                    "doctype": "Stock Ledger Entry",
+                    "item": row.item,
+                    "warehouse": self.to_warehouse,
+                    "posting_date": self.posting_date,
+                    "actual_quantity": row.quantity,
+                    "valuation_rate": row.valuation_rate,
+                    "voucher_type": "Stock Entry",
+                    "voucher_no": self.name
+                })
+                sle_doc.insert()
+
     def validate(self):
         if not self.items:
             frappe.throw("Please add at least one item to the Stock Entry!")
