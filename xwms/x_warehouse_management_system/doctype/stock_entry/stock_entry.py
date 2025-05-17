@@ -10,19 +10,61 @@ class StockEntry(Document):
         self.validate()
 
     def on_submit(self):
-        if self.type == 'Receipt':
+        if self.type == "Receipt":
             for row in self.items:
-                sle_doc = frappe.get_doc({
-                    "doctype": "Stock Ledger Entry",
-                    "item": row.item,
-                    "warehouse": self.to_warehouse,
-                    "posting_date": self.posting_date,
-                    "actual_quantity": row.quantity,
-                    "valuation_rate": row.valuation_rate,
-                    "voucher_type": "Stock Entry",
-                    "voucher_no": self.name
-                })
-                sle_doc.insert()
+                frappe.get_doc(
+                    {
+                        "doctype": "Stock Ledger Entry",
+                        "item": row.item,
+                        "warehouse": self.to_warehouse,
+                        "posting_date": self.posting_date,
+                        "actual_quantity": row.quantity,
+                        "valuation_rate": row.valuation_rate,
+                        "voucher_type": "Stock Entry",
+                        "voucher_no": self.name,
+                    }
+                ).insert()
+
+        elif self.type == "Consume":
+            for row in self.items:
+                # fetch current valuation
+                valuation_rate = self.get_current_valuation_rate(
+                    row.item, self.from_warehouse
+                )
+
+                # TODO: Remove this line once done
+                print(f"Current valuation rate for {row.name}: {valuation_rate}")
+                
+                # get total available quantity
+                available_quantity = frappe.db.sql(
+                    """ SELECT COALESCE(SUM(actual_quantity), 0)
+                    FROM `tabStock Ledger Entry`
+                    WHERE item = %s AND warehouse = %s
+                    """,
+                    (row.item, self.from_warehouse),
+                )[0][0]
+
+                # TODO: delete this after testing
+                print(f"Available {row.name}: {available_quantity}")
+
+                if row.quantity > available_quantity:
+                    frappe.throw(
+                        f"Cannot consume {row.quantity} units of item {row.item} from {self.from_warehouse}. "
+                        f"Only {available_quantity} units available."
+                    )
+
+                frappe.get_doc(
+                    {
+                        "doctype": "Stock Ledger Entry",
+                        "item": row.item,
+                        "warehouse": self.from_warehouse,
+                        "posting_date": self.posting_date,
+                        "actual_quantity": -row.quantity,
+                        "valuation_rate": valuation_rate,
+                        "voucher_type": "Stock Entry",
+                        "voucher_no": self.name,
+                    }
+                ).insert()
 
     def validate(self):
         if not self.items:
@@ -97,3 +139,22 @@ class StockEntry(Document):
                     frappe.throw(
                         f"To warehouse must be a leaf node (not a group) for item {row.item}"
                     )
+
+    def get_current_valuation_rate(self, item, warehouse):
+        result = frappe.db.sql(
+            """
+                SELECT
+                    COALESCE(SUM(actual_quantity * valuation_rate), 0) AS total_value,
+                    COALESCE(SUM(actual_quantity), 0) AS total_quantity
+                FROM `tabStock Ledger Entry`
+                WHERE item = %s AND warehouse = %s
+            """,
+            (item, warehouse),
+        )
+
+        total_value, total_quantity = result[0]
+
+        if total_quantity <= 0:
+            return 0
+
+        return total_value / total_quantity
