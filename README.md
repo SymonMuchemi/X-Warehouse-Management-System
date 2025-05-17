@@ -1,8 +1,12 @@
-### X Warehouse Management System
+# X Warehouse Management System
 
 A WMS for a fictional electronics company, modeled similarly to EXPNext\'s stock module, but simplified and customized.
 
-### Installation
+## Database Design
+
+![Database Design](./XWMS-DB-Design.drawio.png)
+
+## Installation
 
 You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 
