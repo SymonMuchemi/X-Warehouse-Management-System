@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:item",
+ "autoname": "hash",
  "creation": "2025-05-17 04:26:01.045754",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,8 +17,7 @@
    "fieldname": "item",
    "fieldtype": "Link",
    "label": "Item",
-   "options": "Item",
-   "unique": 1
+   "options": "Item"
   },
   {
    "fieldname": "quantity",
@@ -28,8 +27,7 @@
   {
    "fieldname": "uom",
    "fieldtype": "Data",
-   "label": "UOM",
-   "options": "item.uom"
+   "label": "UOM"
   },
   {
    "fieldname": "valuation_rate",
@@ -46,11 +44,11 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-17 05:06:46.304353",
+ "modified": "2025-05-17 20:03:49.587125",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Entry Details",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
