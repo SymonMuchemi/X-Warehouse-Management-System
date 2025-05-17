@@ -8,7 +8,7 @@
   "item",
   "warehouse",
   "posting_date",
-  "actual__quantity",
+  "actual_quantity",
   "valuation_rate",
   "voucher_type",
   "voucher_no"
@@ -32,11 +32,6 @@
    "label": "Posting Date"
   },
   {
-   "fieldname": "actual__quantity",
-   "fieldtype": "Int",
-   "label": "Actual  Quantity"
-  },
-  {
    "fieldname": "valuation_rate",
    "fieldtype": "Currency",
    "label": "Valuation Rate"
@@ -51,12 +46,17 @@
    "fieldtype": "Link",
    "label": "Voucher No",
    "options": "Stock Entry"
+  },
+  {
+   "fieldname": "actual_quantity",
+   "fieldtype": "Int",
+   "label": "Actual  Quantity"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 17:29:47.248564",
+ "modified": "2025-05-17 18:55:52.246927",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Ledger Entry",
