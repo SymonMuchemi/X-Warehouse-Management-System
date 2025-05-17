@@ -5,18 +5,67 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_m5zf"
+  "type",
+  "posting_date",
+  "remarks",
+  "items",
+  "from_warehouse",
+  "to_warehouse",
+  "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "section_break_m5zf",
-   "fieldtype": "Section Break"
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Receipt\nConsume\nTransfer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Stock Entry Details"
+  },
+  {
+   "fieldname": "from_warehouse",
+   "fieldtype": "Link",
+   "label": "From Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "to_warehouse",
+   "fieldtype": "Link",
+   "label": "To Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Stock Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-05-17 04:18:07.219478",
+ "modified": "2025-05-17 04:38:22.517095",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Entry",
@@ -38,5 +87,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "type"
 }
