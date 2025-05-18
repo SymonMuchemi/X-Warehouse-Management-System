@@ -30,16 +30,10 @@ class StockEntry(Document):
                     row.item, self.from_warehouse
                 )
 
-                # TODO: Remove this line once done
-                print(f"Current valuation rate for {row.name}: {valuation_rate}")
-
                 # get total available quantity
                 available_quantity = self.get_available_quantity(
                     row.item, self.from_warehouse
                 )
-
-                # TODO: delete this after testing
-                print(f"Available {row.name}: {available_quantity}")
 
                 if row.quantity > available_quantity:
                     frappe.throw(
@@ -202,7 +196,7 @@ class StockEntry(Document):
                     )
 
     def get_current_valuation_rate(self, item, warehouse):
-        # TODO: Write formula here
+        # formula => valuation_rate = total_stock_value / total_stock_qty
         result = frappe.db.sql(
             """
             SELECT COALESCE(SUM(actual_quantity * valuation_rate), 0) as total_value,
