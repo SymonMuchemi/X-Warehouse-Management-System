@@ -22,6 +22,12 @@ class TestStockEntry(FrappeTestCase):
             "warehouse_name": unique_warehouse,
             "is_group": 0
         }).insert()
+    
+    def tearDown(self):
+        frappe.db.sql("DELETE FROM `tabStock Ledger Entry`")
+        frappe.db.sql("DELETE FROM `tabStock Entry`")
+        frappe.db.sql("DELETE FROM `tabItem` WHERE name = %s", (self.item.name,))
+        frappe.db.commit()
 
     def test_receipt_entry(self):
         """ Test stock receipt entry creation and validation. """
@@ -172,3 +178,63 @@ class TestStockEntry(FrappeTestCase):
             })
             doc.insert()
             doc.submit()
+
+    def test_valuation_rate_after_multiple_receipts(self):
+        """ Test moving average valuation rate after multiple receipts. """
+
+        # First Receipt: 5 items @ 10,000
+        doc1 = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Receipt",
+            "to_warehouse": self.warehouse.name,
+            "posting_date": "2025-05-01",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 5,
+                "valuation_rate": 10000
+            }]
+        }).insert()
+        doc1.submit()
+
+        # Second Receipt: 5 items @ 20,000
+        doc2 = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Receipt",
+            "to_warehouse": self.warehouse.name,
+            "posting_date": "2025-05-02",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 5,
+                "valuation_rate": 20000
+            }]
+        }).insert()
+        doc2.submit()
+
+        # Expected moving average:
+        # Total value: (5 * 10k) + (5 * 20k) = 150,000
+        # Total quantity: 10
+        # Expected valuation rate = 150,000 / 10 = 15,000
+
+        # Consume 2 items (should be at 15,000 per unit)
+        consume = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Consume",
+            "from_warehouse": self.warehouse.name,
+            "posting_date": "2025-05-03",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 2
+            }]
+        }).insert()
+        consume.submit()
+
+        # Check the valuation rate used in the consume entry
+        sle = frappe.get_all("Stock Ledger Entry", filters={
+            "voucher_no": consume.name,
+            "item": self.item.name,
+            "warehouse": self.warehouse.name
+        }, fields=["valuation_rate", "actual_quantity"])
+
+        self.assertEqual(len(sle), 1)
+        self.assertEqual(sle[0].valuation_rate, 15000)
+        self.assertEqual(sle[0].actual_quantity, -2)
