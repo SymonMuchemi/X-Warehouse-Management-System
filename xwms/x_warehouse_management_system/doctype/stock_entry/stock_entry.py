@@ -63,13 +63,9 @@ class StockEntry(Document):
         elif self.type == "Transfer":
             for row in self.items:
                 # get total available quantity
-                available_quantity = frappe.db.sql(
-                    """ SELECT COALESCE(SUM(actual_quantity), 0)
-                    FROM `tabStock Ledger Entry`
-                    WHERE item = %s AND warehouse = %s
-                    """,
-                    (row.item, self.from_warehouse),
-                )[0][0]
+                available_quantity = self.get_available_quantity(
+                    row.item, self.from_warehouse
+                )
 
                 # get valuation rate from the source warehouse
                 valuation_rate = self.get_current_valuation_rate(
@@ -120,6 +116,10 @@ class StockEntry(Document):
         # ensure posing date is not in the future
         today = datetime.strptime(frappe.utils.today(), "%Y-%m-%d").date()
 
+        # get date version of posting date string
+        if isinstance(self.posting_date, str):
+            self.posting_date = datetime.strptime(self.posting_date, "%Y-%m-%d").date()
+
         if self.posting_date > today:
             frappe.throw("Posting date cannot be in the future!")
 
@@ -147,7 +147,12 @@ class StockEntry(Document):
 
                 if is_group:
                     frappe.throw(
-                        f"To warehouse must be a leaf node (not a group) for item {row.item}"
+                        f"To warehouse must be a leaf node (not a group) for item {row.item}!"
+                    )
+
+                if not row.valuation_rate or row.valuation_rate <= 0:
+                    frappe.throw(
+                        f"Valuation rate on receopt entry must be valid and greater than 0!"
                     )
 
             elif self.type == "Consume":
@@ -197,8 +202,15 @@ class StockEntry(Document):
                     )
 
     def get_current_valuation_rate(self, item, warehouse):
-        result = self.get_available_quantity(item, warehouse)
-
+        result = frappe.db.sql(
+            """
+            SELECT COALESCE(SUM(actual_quantity * valuation_rate), 0) as total_value,
+                   COALESCE(SUM(actual_quantity), 0) as total_quantity
+            FROM `tabStock Ledger Entry`
+            WHERE item = %s AND warehouse = %s
+        """,
+            (item, warehouse),
+        )
         total_value, total_quantity = result[0]
 
         if total_quantity <= 0:
