@@ -9,7 +9,6 @@
   "code",
   "item_name",
   "description",
-  "valuation_rate",
   "uom"
  ],
  "fields": [
@@ -30,11 +29,6 @@
    "label": "description"
   },
   {
-   "fieldname": "valuation_rate",
-   "fieldtype": "Currency",
-   "label": "valuation_rate"
-  },
-  {
    "fieldname": "uom",
    "fieldtype": "Select",
    "label": "UOM",
@@ -44,7 +38,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 01:26:04.261691",
+ "modified": "2025-05-18 10:19:29.000398",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Item",

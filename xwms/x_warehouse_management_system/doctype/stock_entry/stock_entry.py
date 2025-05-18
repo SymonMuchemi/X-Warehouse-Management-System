@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from datetime import datetime
 
 
 class StockEntry(Document):
@@ -110,6 +111,12 @@ class StockEntry(Document):
                 ).insert()
 
     def validate(self):
+        # ensure posing date is not in the future
+        today = datetime.strptime(frappe.utils.today(), "%Y-%m-%d").date()
+        
+        if self.posting_date > today:
+            frappe.throw("Posting date cannot be in the future!")
+
         if not self.items:
             frappe.throw("Please add at least one item to the Stock Entry!")
 

@@ -8,9 +8,7 @@
  "field_order": [
   "item",
   "quantity",
-  "uom",
-  "valuation_rate",
-  "amount"
+  "valuation_rate"
  ],
  "fields": [
   {
@@ -25,26 +23,16 @@
    "label": "Quantity"
   },
   {
-   "fieldname": "uom",
-   "fieldtype": "Data",
-   "label": "UOM"
-  },
-  {
    "fieldname": "valuation_rate",
    "fieldtype": "Currency",
    "label": "valuation_rate"
-  },
-  {
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "amount"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-17 20:03:49.587125",
+ "modified": "2025-05-18 10:25:51.737814",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Entry Details",
