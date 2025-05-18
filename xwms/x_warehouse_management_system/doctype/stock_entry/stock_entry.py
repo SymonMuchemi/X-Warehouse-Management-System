@@ -67,16 +67,16 @@ class StockEntry(Document):
                     row.item, self.from_warehouse
                 )
 
-                # get valuation rate from the source warehouse
-                valuation_rate = self.get_current_valuation_rate(
-                    row.item, self.from_warehouse
-                )
-
                 if row.quantity > available_quantity:
                     frappe.throw(
                         f"Cannot transfer {row.quantity} units of item {row.item} from {self.from_warehouse}. "
                         f"Only {available_quantity} units available."
                     )
+
+                # get valuation rate from the source warehouse
+                valuation_rate = self.get_current_valuation_rate(
+                    row.item, self.from_warehouse
+                )
 
                 # oubound entry
                 frappe.get_doc(
@@ -202,6 +202,7 @@ class StockEntry(Document):
                     )
 
     def get_current_valuation_rate(self, item, warehouse):
+        # TODO: Write formula here
         result = frappe.db.sql(
             """
             SELECT COALESCE(SUM(actual_quantity * valuation_rate), 0) as total_value,
