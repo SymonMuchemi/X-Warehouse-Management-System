@@ -87,3 +87,21 @@ class TestStockEntry(FrappeTestCase):
         self.assertEqual(len(sle), 1)
         self.assertEqual(sle[0].actual_quantity, -4)
         self.assertGreater(sle[0].valuation_rate, 0)
+
+    def test_consume_entry_insufficient_stock(self):
+        # No receipt here → stock is 0
+
+        with self.assertRaises(frappe.ValidationError):
+            consume = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Consume",
+                "from_warehouse": self.warehouse.name,
+                "posting_date": "2025-05-16",
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 1
+                }]
+            })
+            consume.insert()
+            consume.submit()
+
