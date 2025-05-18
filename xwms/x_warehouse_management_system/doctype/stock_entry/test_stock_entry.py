@@ -241,6 +241,8 @@ class TestStockEntry(FrappeTestCase):
         self.assertEqual(sle[0].actual_quantity, -2)
 
     def test_transfer_entry_uses_source_valuation_rate(self):
+        """ Test stock transfer entry uses source warehouse valuation rate. """
+
         # Create destination warehouse
         dest_warehouse = frappe.get_doc({
             "doctype": "Warehouse",
