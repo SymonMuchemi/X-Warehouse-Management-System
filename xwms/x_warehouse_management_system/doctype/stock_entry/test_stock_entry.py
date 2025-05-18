@@ -300,3 +300,62 @@ class TestStockEntry(FrappeTestCase):
         # ✅ Warehouses should match correctly
         self.assertEqual(outbound.warehouse, self.warehouse.name)
         self.assertEqual(inbound.warehouse, dest_warehouse.name)
+
+    def test_group_warehouse_not_allowed(self):
+        """ Test that group warehouses cannot be used in stock entries. """
+        # Create a group warehouse (non-leaf)
+        group_wh = frappe.get_doc({
+            "doctype": "Warehouse",
+            "warehouse_name": "Group Warehouse Test",
+            "is_group": 1
+        }).insert()
+
+        # 🚫 Try using as Receipt destination
+        with self.assertRaises(frappe.ValidationError):
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Receipt",
+                "to_warehouse": group_wh.name,
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 5,
+                    "valuation_rate": 9000
+                }]
+            })
+            doc.insert()
+            doc.submit()
+
+        # 🚫 Try using as Consume source
+        with self.assertRaises(frappe.ValidationError):
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Consume",
+                "from_warehouse": group_wh.name,
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 2
+                }]
+            })
+            doc.insert()
+            doc.submit()
+
+        # 🚫 Try using as either side in Transfer
+        with self.assertRaises(frappe.ValidationError):
+            dest = frappe.get_doc({
+                "doctype": "Warehouse",
+                "warehouse_name": "Another Bin",
+                "is_group": 0
+            }).insert()
+
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Transfer",
+                "from_warehouse": group_wh.name,
+                "to_warehouse": dest.name,
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 1
+                }]
+            })
+            doc.insert()
+            doc.submit()
