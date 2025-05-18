@@ -105,3 +105,50 @@ class TestStockEntry(FrappeTestCase):
             consume.insert()
             consume.submit()
 
+    def test_transfer_entry_success(self):
+        # Create destination warehouse
+        dest_warehouse = frappe.get_doc({
+            "doctype": "Warehouse",
+            "warehouse_name": "Test Bin B",
+            "is_group": 0
+        }).insert()
+
+        # Receive stock first
+        receipt = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Receipt",
+            "to_warehouse": self.warehouse.name,
+            "posting_date": "2025-05-15",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 10,
+                "valuation_rate": 15000
+            }]
+        }).insert()
+        receipt.submit()
+
+        # Transfer stock
+        transfer = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Transfer",
+            "from_warehouse": self.warehouse.name,
+            "to_warehouse": dest_warehouse.name,
+            "posting_date": "2025-05-17",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 5
+            }]
+        }).insert()
+        transfer.submit()
+
+        sle = frappe.get_all("Stock Ledger Entry", filters={
+            "voucher_no": transfer.name
+        }, fields=["warehouse", "actual_quantity", "valuation_rate"])
+
+        self.assertEqual(len(sle), 2)
+
+        outbound = next(s for s in sle if s.actual_quantity < 0)
+        inbound = next(s for s in sle if s.actual_quantity > 0)
+
+        self.assertEqual(abs(outbound.actual_quantity), inbound.actual_quantity)
+        self.assertEqual(outbound.valuation_rate, inbound.valuation_rate)
