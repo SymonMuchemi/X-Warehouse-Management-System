@@ -111,9 +111,15 @@ class StockEntry(Document):
                 ).insert()
 
     def validate(self):
+        # set posting_date to current date if not specified
+        if not self.posting_date:
+            self.posting_date = datetime.strptime(
+                frappe.utils.today(), "%Y-%m-%d"
+            ).date()
+
         # ensure posing date is not in the future
         today = datetime.strptime(frappe.utils.today(), "%Y-%m-%d").date()
-        
+
         if self.posting_date > today:
             frappe.throw("Posting date cannot be in the future!")
 
