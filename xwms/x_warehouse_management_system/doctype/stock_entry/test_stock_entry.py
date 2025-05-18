@@ -26,7 +26,8 @@ class TestStockEntry(FrappeTestCase):
     def tearDown(self):
         frappe.db.sql("DELETE FROM `tabStock Ledger Entry`")
         frappe.db.sql("DELETE FROM `tabStock Entry`")
-        frappe.db.sql("DELETE FROM `tabItem` WHERE name = %s", (self.item.name,))
+        frappe.db.sql("DELETE FROM `tabWarehouse`")
+        frappe.db.sql("DELETE FROM `tabItem`")
         frappe.db.commit()
 
     def test_receipt_entry(self):
@@ -238,3 +239,62 @@ class TestStockEntry(FrappeTestCase):
         self.assertEqual(len(sle), 1)
         self.assertEqual(sle[0].valuation_rate, 15000)
         self.assertEqual(sle[0].actual_quantity, -2)
+
+    def test_transfer_entry_uses_source_valuation_rate(self):
+        # Create destination warehouse
+        dest_warehouse = frappe.get_doc({
+            "doctype": "Warehouse",
+            "warehouse_name": "Test Bin Transfer Target",
+            "is_group": 0
+        }).insert()
+
+        # Receive 4 items @ 12,000 in source warehouse
+        receipt = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Receipt",
+            "to_warehouse": self.warehouse.name,
+            "posting_date": "2025-05-10",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 4,
+                "valuation_rate": 12000
+            }]
+        }).insert()
+        receipt.submit()
+
+        # Transfer 2 items to destination warehouse
+        transfer = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Transfer",
+            "from_warehouse": self.warehouse.name,
+            "to_warehouse": dest_warehouse.name,
+            "posting_date": "2025-05-11",
+            "items": [{
+                "item": self.item.name,
+                "quantity": 2
+            }]
+        }).insert()
+        transfer.submit()
+
+        # Fetch the two SLEs from this transfer
+        sle_entries = frappe.get_all("Stock Ledger Entry", filters={
+            "voucher_no": transfer.name,
+            "item": self.item.name
+        }, fields=["warehouse", "actual_quantity", "valuation_rate"])
+
+        self.assertEqual(len(sle_entries), 2)
+
+        # Separate inbound and outbound
+        outbound = next(s for s in sle_entries if s.actual_quantity < 0)
+        inbound = next(s for s in sle_entries if s.actual_quantity > 0)
+
+        # ✅ Valuation rate should be the same on both
+        self.assertEqual(outbound.valuation_rate, 12000)
+        self.assertEqual(inbound.valuation_rate, 12000)
+
+        # ✅ Actual quantities should be equal (opposite signs)
+        self.assertEqual(abs(outbound.actual_quantity), inbound.actual_quantity)
+
+        # ✅ Warehouses should match correctly
+        self.assertEqual(outbound.warehouse, self.warehouse.name)
+        self.assertEqual(inbound.warehouse, dest_warehouse.name)
