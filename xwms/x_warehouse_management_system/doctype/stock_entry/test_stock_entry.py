@@ -24,6 +24,7 @@ class TestStockEntry(FrappeTestCase):
         }).insert()
 
     def test_receipt_entry(self):
+        """ Test stock receipt entry creation and validation. """
         doc = frappe.get_doc({
             "doctype": "Stock Entry",
             "type": "Receipt",
@@ -51,6 +52,7 @@ class TestStockEntry(FrappeTestCase):
         self.assertEqual(sle[0].valuation_rate, 10000)
 
     def test_consume_entry_success(self):
+        """ Test stock consume entry creation and validation. """
         # First, receive stock
         receipt = frappe.get_doc({
             "doctype": "Stock Entry",
@@ -89,7 +91,7 @@ class TestStockEntry(FrappeTestCase):
         self.assertGreater(sle[0].valuation_rate, 0)
 
     def test_consume_entry_insufficient_stock(self):
-        # No receipt here → stock is 0
+        """ Test stock consume entry with insufficient stock. """
 
         with self.assertRaises(frappe.ValidationError):
             consume = frappe.get_doc({
@@ -106,6 +108,7 @@ class TestStockEntry(FrappeTestCase):
             consume.submit()
 
     def test_transfer_entry_success(self):
+        """ Test stock transfer entry creation and validation. """
         # Create destination warehouse
         dest_warehouse = frappe.get_doc({
             "doctype": "Warehouse",
@@ -152,3 +155,20 @@ class TestStockEntry(FrappeTestCase):
 
         self.assertEqual(abs(outbound.actual_quantity), inbound.actual_quantity)
         self.assertEqual(outbound.valuation_rate, inbound.valuation_rate)
+
+    def test_zero_quantity_rejected(self):
+        """ Test stock entry with zero quantity. """
+        with self.assertRaises(frappe.ValidationError):
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Receipt",
+                "to_warehouse": self.warehouse.name,
+                "posting_date": "2025-05-15",
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 0,
+                    "valuation_rate": 10000
+                }]
+            })
+            doc.insert()
+            doc.submit()
