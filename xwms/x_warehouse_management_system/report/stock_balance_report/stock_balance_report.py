@@ -63,14 +63,14 @@ def get_data(filters):
             warehouse,
             SUM(actual_quantity) AS qty,
             CASE 
-                WHEN SUM(actual_quantity) = 0 THEN 0
+                WHEN SUM(actual_quantity) <= 0 THEN 0
                 ELSE SUM(actual_quantity * valuation_rate) / SUM(actual_quantity)
             END AS valuation_rate,
             SUM(actual_quantity * valuation_rate) AS stock_value
         FROM `tabStock Ledger Entry`
         {where_clause}
         GROUP BY item, warehouse
-        HAVING qty != 0
+        HAVING qty >= 0
         ORDER BY item, warehouse
     """
 

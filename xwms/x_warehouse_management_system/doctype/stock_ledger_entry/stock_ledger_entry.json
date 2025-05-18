@@ -39,11 +39,13 @@
   {
    "fieldname": "voucher_type",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Voucher Type"
   },
   {
    "fieldname": "voucher_no",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Voucher No",
    "options": "Stock Entry"
   },
@@ -56,7 +58,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 18:55:52.246927",
+ "modified": "2025-05-18 14:07:42.985261",
  "modified_by": "Administrator",
  "module": "X Warehouse Management System",
  "name": "Stock Ledger Entry",
