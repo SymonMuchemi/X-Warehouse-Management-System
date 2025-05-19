@@ -359,3 +359,20 @@ class TestStockEntry(FrappeTestCase):
             })
             doc.insert()
             doc.submit()
+
+    def test_transfer_within_same_warehouse_should_fail(self):
+        """ Test that transferring stock within the same warehouse fails. """
+        with self.assertRaises(frappe.ValidationError):
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Transfer",
+                "from_warehouse": self.warehouse.name,
+                "to_warehouse": self.warehouse.name,  # same warehouse
+                "posting_date": "2025-05-20",
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 3
+                }]
+            })
+            doc.insert()
+            doc.submit()
