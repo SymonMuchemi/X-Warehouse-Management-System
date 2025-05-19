@@ -376,3 +376,24 @@ class TestStockEntry(FrappeTestCase):
             })
             doc.insert()
             doc.submit()
+    
+    def test_invalid_quantities_should_fail(self):
+        """ Test that invalid quantities raise validation errors. """
+        invalid_quantities = [0, -1, None]
+
+        for qty in invalid_quantities:
+            with self.assertRaises(frappe.ValidationError, msg=f"Quantity: {qty} should raise error"):
+                doc = frappe.get_doc({
+                    "doctype": "Stock Entry",
+                    "type": "Receipt",
+                    "to_warehouse": self.warehouse.name,
+                    "posting_date": "2025-05-22",
+                    "items": [{
+                        "item": self.item.name,
+                        "quantity": qty,
+                        "valuation_rate": 10000
+                    }]
+                })
+                doc.insert()
+                doc.submit()
+
