@@ -327,7 +327,6 @@ class TestStockEntry(FrappeTestCase):
             doc.insert()
             doc.submit()
 
-        # 🚫 Try using as Consume source
         with self.assertRaises(frappe.ValidationError):
             doc = frappe.get_doc({
                 "doctype": "Stock Entry",
@@ -341,7 +340,6 @@ class TestStockEntry(FrappeTestCase):
             doc.insert()
             doc.submit()
 
-        # 🚫 Try using as either side in Transfer
         with self.assertRaises(frappe.ValidationError):
             dest = frappe.get_doc({
                 "doctype": "Warehouse",
@@ -400,7 +398,8 @@ class TestStockEntry(FrappeTestCase):
                 doc.submit()
 
     def test_future_posting_date_should_fail(self):
-        future_date = add_days(today(), 3)  # 3 days in the future
+        """ Test that posting date in the future raises validation error. """
+        future_date = add_days(today(), 3)
 
         with self.assertRaises(frappe.ValidationError) as context:
             doc = frappe.get_doc({
@@ -420,6 +419,7 @@ class TestStockEntry(FrappeTestCase):
         self.assertIn("Posting date cannot be in the future", str(context.exception))
 
     def test_missing_posting_date_defaults_to_today(self):
+        """ Test that missing posting date defaults to today. """
         doc = frappe.get_doc({
             "doctype": "Stock Entry",
             "type": "Receipt",
