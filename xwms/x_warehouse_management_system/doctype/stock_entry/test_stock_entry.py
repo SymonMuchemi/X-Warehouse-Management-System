@@ -4,6 +4,8 @@
 import frappe
 import uuid
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_days, today
+
 
 
 class TestStockEntry(FrappeTestCase):
@@ -397,3 +399,37 @@ class TestStockEntry(FrappeTestCase):
                 doc.insert()
                 doc.submit()
 
+    def test_future_posting_date_should_fail(self):
+        future_date = add_days(today(), 3)  # 3 days in the future
+
+        with self.assertRaises(frappe.ValidationError) as context:
+            doc = frappe.get_doc({
+                "doctype": "Stock Entry",
+                "type": "Receipt",
+                "to_warehouse": self.warehouse.name,
+                "posting_date": future_date,
+                "items": [{
+                    "item": self.item.name,
+                    "quantity": 3,
+                    "valuation_rate": 10000
+                }]
+            })
+            doc.insert()
+            doc.submit()
+
+        self.assertIn("Posting date cannot be in the future", str(context.exception))
+
+    def test_missing_posting_date_defaults_to_today(self):
+        doc = frappe.get_doc({
+            "doctype": "Stock Entry",
+            "type": "Receipt",
+            "to_warehouse": self.warehouse.name,
+            "items": [{
+                "item": self.item.name,
+                "quantity": 2,
+                "valuation_rate": 8000
+            }]
+        }).insert()
+        doc.submit()
+
+        self.assertEqual(str(doc.posting_date), today())
