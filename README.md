@@ -16,6 +16,29 @@ bench get-app $URL_OF_THIS_REPO --branch develop
 bench install-app xwms
 ```
 
+## Running Tests
+
+To run the tests, you can use the following command:
+
+```bash
+cd xwms
+bech use xwms.local
+```
+
+Doctype tests:
+
+```bash
+bench run-tests --doctype "Stock Entry"  
+```
+
+Report tests:
+
+```bash
+bench run-tests --module xwms.x_warehouse_management_system.report.stock_ledger_report.test_stock_ledger_report
+
+bench run-tests --module xwms.x_warehouse_management_system.report.stock_ledger_report.test_stock_balance_report.test_stock_balance_report
+```
+
 ### Contributing
 
 This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
